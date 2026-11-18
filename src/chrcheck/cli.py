@@ -16,6 +16,7 @@ from chrcheck.harmonize import (
 )
 from chrcheck.models import CheckReport, FileProfile
 from chrcheck.parsers import parse_file
+from chrcheck.sarif import report_to_sarif
 
 _SUBCOMMANDS = {"check", "inspect", "rename-map", "fix-bed"}
 
@@ -191,6 +192,8 @@ def _cmd_check(args: argparse.Namespace) -> int:
             sys.stdout.write(json.dumps(_report_to_dict(report), indent=2) + "\n")
         elif args.format == "markdown":
             sys.stdout.write(_format_markdown(report))
+        elif args.format == "sarif":
+            sys.stdout.write(json.dumps(report_to_sarif(report), indent=2) + "\n")
         else:
             sys.stdout.write(_format_summary_table(report, _use_color(args.no_color)))
     return report.exit_code
@@ -275,7 +278,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     p_check = sub.add_parser("check", help="Check build, naming, order, and bounds across files.")
     p_check.add_argument("files", nargs="+", help="Genomics input files (reference/BAM first recommended).")
-    p_check.add_argument("--format", choices=("table", "json", "markdown"), default="table")
+    p_check.add_argument("--format", choices=("table", "json", "markdown", "sarif"), default="table")
     p_check.add_argument("--fail-on", choices=("error", "warning"), default="error")
     p_check.add_argument("--emit-chr-map", metavar="PATH", help="Write bcftools --rename-chrs TSV map.")
     p_check.add_argument("--sample-records", type=int, default=50000)
