@@ -1,0 +1,19 @@
+name: Feature request
+description: Propose support for an organism build, format parser, or diagnostic check
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or pipeline gap
+      description: Which downstream tool or file combination fails silently without this check?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe the desired CLI flags, diagnostic code, or output format.
+    validations:
+      required: true

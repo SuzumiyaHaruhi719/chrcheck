@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 220" width="920" height="220" role="img" aria-label="chrcheck banner">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b1220" />
+      <stop offset="55%" stop-color="#111b2e" />
+      <stop offset="100%" stop-color="#0f2738" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#22d3ee" />
+      <stop offset="100%" stop-color="#34d399" />
+    </linearGradient>
+  </defs>
+  <rect width="920" height="220" rx="16" fill="url(#bg)" />
+  <rect x="1.5" y="1.5" width="917" height="217" rx="15" fill="none" stroke="#1e3a5f" stroke-width="1.5" />
+
+  <!-- Contig alignment motif -->
+  <g transform="translate(52, 54)">
+    <rect x="0" y="0" width="112" height="112" rx="14" fill="#091526" stroke="#1e40af" stroke-opacity="0.55" />
+    <rect x="16" y="22" width="44" height="12" rx="6" fill="#22d3ee" />
+    <rect x="66" y="22" width="30" height="12" rx="6" fill="#34d399" opacity="0.85" />
+    <rect x="16" y="44" width="32" height="12" rx="6" fill="#f59e0b" />
+    <rect x="54" y="44" width="42" height="12" rx="6" fill="#f43f5e" />
+    <rect x="16" y="66" width="44" height="12" rx="6" fill="#22d3ee" />
+    <rect x="66" y="66" width="30" height="12" rx="6" fill="#34d399" opacity="0.85" />
+    <path d="M22 95 L42 95 M48 95 L94 95" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" opacity="0.55" />
+  </g>
+
+  <!-- Title & subtitle -->
+  <text x="192" y="102" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="52" font-weight="700" fill="#f8fafc" letter-spacing="-1">chrcheck</text>
+  <rect x="462" y="68" width="92" height="28" rx="6" fill="#132b3d" stroke="#22d3ee" stroke-opacity="0.45" />
+  <text x="508" y="87" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" font-weight="600" fill="#67e8f9">v0.1.0</text>
+  <rect x="192" y="116" width="180" height="3" rx="1.5" fill="url(#accent)" />
+  <text x="192" y="148" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="19" fill="#cbd5e1">Genome build &amp; chromosome naming preflight for BAM, VCF, BED, GTF, and FASTA.</text>
+  <text x="192" y="176" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13.5" fill="#94a3b8">Catch chr1 vs 1, chrM vs MT, hg19 vs GRCh37, and order drift before exit 0 ruins a run.</text>
+</svg>
