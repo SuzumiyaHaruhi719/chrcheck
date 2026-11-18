@@ -10,7 +10,7 @@ import unittest
 import zlib
 from contextlib import redirect_stderr, redirect_stdout
 
-from chrcheck.assemblies import ASSEMBLIES, classify_contig
+from chrcheck.assemblies import ASSEMBLIES, classify_contig, karyotypic_rank
 from chrcheck.checker import check_profiles
 from chrcheck.cli import main
 from chrcheck.harmonize import UnsafeBuildMappingError, build_chr_map
@@ -485,6 +485,78 @@ class ChrcheckTests(unittest.TestCase):
         with redirect_stderr(io.StringIO()):
             rc_missing = main([self._p("does_not_exist.bed")])
         self.assertEqual(rc_missing, 2)
+
+    def test_model_organism_naming_and_refseq(self) -> None:
+        # (build, canonical, UCSC, Ensembl, RefSeq) verified against NCBI assembly reports.
+        cases = [
+            ("GRCz11", "1", "chr1", "1", "NC_007112.7"),
+            ("GRCz11", "25", "chr25", "25", "NC_007136.7"),
+            ("GRCz11", "MT", "chrM", "MT", "NC_002333.2"),
+            ("BDGP6", "2L", "chr2L", "2L", "NT_033779.5"),
+            ("BDGP6", "3R", "chr3R", "3R", "NT_033777.3"),
+            ("BDGP6", "4", "chr4", "4", "NC_004353.4"),
+            ("BDGP6", "X", "chrX", "X", "NC_004354.4"),
+            ("BDGP6", "MT", "chrM", "MT", "NC_024511.2"),
+            ("WBcel235", "I", "chrI", "I", "NC_003279.8"),
+            ("WBcel235", "V", "chrV", "V", "NC_003283.11"),
+            ("WBcel235", "X", "chrX", "X", "NC_003284.9"),
+            ("WBcel235", "MT", "chrM", "MtDNA", "NC_001328.1"),
+        ]
+        for build, canon, ucsc, ensembl, refseq in cases:
+            spec = ASSEMBLIES[build]
+            self.assertEqual(spec.ucsc_names[canon], ucsc)
+            self.assertEqual(spec.ensembl_names[canon], ensembl)
+            self.assertEqual(spec.refseq_names[canon], refseq)
+            self.assertEqual(classify_contig(ucsc)[:2], (canon, "ucsc"))
+            self.assertEqual(classify_contig(ensembl)[:2], (canon, "ensembl"))
+            self.assertEqual(classify_contig(refseq), (canon, "refseq", build))
+
+    def test_model_organism_lengths(self) -> None:
+        self.assertEqual(ASSEMBLIES["GRCz11"].lengths["1"], 59578282)
+        self.assertEqual(ASSEMBLIES["GRCz11"].lengths["MT"], 16596)
+        self.assertEqual(len(ASSEMBLIES["GRCz11"].lengths), 26)
+        self.assertEqual(ASSEMBLIES["BDGP6"].lengths["2L"], 23513712)
+        self.assertEqual(ASSEMBLIES["BDGP6"].lengths["MT"], 19524)
+        self.assertEqual(len(ASSEMBLIES["BDGP6"].lengths), 8)
+        self.assertEqual(ASSEMBLIES["WBcel235"].lengths["V"], 20924180)
+        self.assertEqual(ASSEMBLIES["WBcel235"].lengths["MT"], 13794)
+        self.assertEqual(len(ASSEMBLIES["WBcel235"].lengths), 7)
+
+    def test_model_organism_inference_and_ucsc_vs_ensembl_mapping(self) -> None:
+        for build, subset, ens_mito in (
+            ("GRCz11", [str(i) for i in range(1, 26)] + ["MT"], "MT"),
+            ("BDGP6", ["2L", "2R", "3L", "3R", "4", "X", "Y", "MT"], "MT"),
+            ("WBcel235", ["I", "II", "III", "IV", "V", "X", "MT"], "MtDNA"),
+        ):
+            ucsc_fai = self._p(f"{build}.ucsc.fa.fai")
+            with open(ucsc_fai, "wt", encoding="utf-8") as fh:
+                for name, length in _human_contigs(build, "ucsc", subset=subset):
+                    fh.write(f"{name}\t{length}\t0\t80\t81\n")
+            ens_fai = self._p(f"{build}.ens.fa.fai")
+            with open(ens_fai, "wt", encoding="utf-8") as fh:
+                for name, length in _human_contigs(build, "ensembl", subset=subset):
+                    fh.write(f"{name}\t{length}\t0\t80\t81\n")
+
+            p_ucsc = parse_file(ucsc_fai)
+            p_ens = parse_file(ens_fai)
+            self.assertEqual(p_ucsc.inferred_assemblies, [build])
+            self.assertEqual(p_ens.inferred_assemblies, [build])
+            self.assertEqual(p_ucsc.naming_style, "ucsc")
+            self.assertEqual(p_ens.naming_style, "ensembl")
+
+            pairs = dict(build_chr_map(p_ucsc, target_style="ensembl"))
+            self.assertEqual(pairs["chrM"], ens_mito)
+            self.assertEqual(pairs[ASSEMBLIES[build].ucsc_names[subset[0]]], subset[0])
+            back = dict(build_chr_map(p_ens, target_style="ucsc"))
+            self.assertEqual(back[ens_mito], "chrM")
+
+    def test_karyotypic_rank_for_arms_and_roman_numerals(self) -> None:
+        fly = ["chr2L", "chr2R", "chr3L", "chr3R", "chr4", "chrX", "chrY"]
+        self.assertEqual(sorted(reversed(fly), key=karyotypic_rank), fly)
+        worm = ["chrI", "chrII", "chrIII", "chrIV", "chrV", "chrX"]
+        self.assertEqual(sorted(reversed(worm), key=karyotypic_rank), worm)
+        human = ["chr1", "chr2", "chr10", "chr22", "chrX", "chrY", "chrM"]
+        self.assertEqual(sorted(reversed(human), key=karyotypic_rank), human)
 
 
 if __name__ == "__main__":
