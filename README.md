@@ -68,7 +68,7 @@ chrcheck reference.fa.fai sample.bam targets.bed variants.vcf.gz
 
 Useful flags:
 
-- `--format table|json|markdown`: output format (`table` default)
+- `--format table|json|markdown|sarif`: output format (`table` default)
 - `--fail-on error|warning`: exit `1` on errors only (`error`, default) or also on warnings (`warning`)
 - `--emit-chr-map path.tsv`: write a `bcftools annotate --rename-chrs` mapping from the last mismatched input to the first/reference input when assembly builds are compatible
 - `--sample-records 50000` / `--full`: cap sampled records on huge plain/gz VCF/BED/GTF files (`50000` default) or scan every record
@@ -157,7 +157,6 @@ Three reasons: `sed` turns `chrM` into `M` (not `MT`), alters feature names like
 ## Roadmap
 
 - CRAM binary container header parsing with `@SQ` `M5` checksum comparison ([#1](https://github.com/SuzumiyaHaruhi719/chrcheck/issues/1))
-- SARIF 2.1.0 output (`--format sarif`) for GitHub Code Scanning annotations ([#2](https://github.com/SuzumiyaHaruhi719/chrcheck/issues/2))
 - Built-in assembly signatures for zebrafish (`GRCz11`), fruit fly (`BDGP6`/`dm6`), and *C. elegans* (`WBcel235`/`ce11`) ([#3](https://github.com/SuzumiyaHaruhi719/chrcheck/issues/3))
 - Binary `.bigWig` / `.bigBed` chromosome B+ tree header inspection ([#4](https://github.com/SuzumiyaHaruhi719/chrcheck/issues/4))
 

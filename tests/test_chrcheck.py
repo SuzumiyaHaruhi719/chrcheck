@@ -486,6 +486,50 @@ class ChrcheckTests(unittest.TestCase):
             rc_missing = main([self._p("does_not_exist.bed")])
         self.assertEqual(rc_missing, 2)
 
+    def test_sarif_output_structure(self) -> None:
+        sam = self._p("aln.sam")
+        with open(sam, "wt", encoding="utf-8") as fh:
+            fh.write("@HD\tVN:1.6\n")
+            for name, length in _human_contigs("GRCh38", "ucsc", subset=["1", "2", "MT"]):
+                fh.write(f"@SQ\tSN:{name}\tLN:{length}\n")
+        vcf = self._p("vars.vcf")
+        with open(vcf, "wt", encoding="utf-8") as fh:
+            fh.write("##fileformat=VCFv4.2\n")
+            for name, length in _human_contigs("GRCh38", "ensembl", subset=["1", "2", "MT"]):
+                fh.write(f"##contig=<ID={name},length={length}>\n")
+            fh.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n")
+
+        out_buf = io.StringIO()
+        with redirect_stdout(out_buf):
+            rc = main([sam, vcf, "--format", "sarif"])
+        self.assertEqual(rc, 1)
+        log = json.loads(out_buf.getvalue())
+        self.assertEqual(log["version"], "2.1.0")
+        self.assertIn("sarif-2.1.0", log["$schema"])
+        run = log["runs"][0]
+        driver = run["tool"]["driver"]
+        self.assertEqual(driver["name"], "chrcheck")
+        rules = driver["rules"]
+        rule_ids = [r["id"] for r in rules]
+        self.assertEqual(len(rule_ids), len(set(rule_ids)))
+        self.assertIn("CHR-003", rule_ids)
+        self.assertTrue(run["results"])
+        for res in run["results"]:
+            self.assertEqual(rules[res["ruleIndex"]]["id"], res["ruleId"])
+            self.assertIn(res["level"], ("error", "warning", "note"))
+            self.assertTrue(res["message"]["text"])
+        by_rule = {res["ruleId"]: res for res in run["results"]}
+        self.assertEqual(by_rule["CHR-003"]["level"], "error")
+        self.assertTrue(by_rule["CHR-003"]["locations"])
+
+        ok_buf = io.StringIO()
+        with redirect_stdout(ok_buf):
+            rc_ok = main(["check", sam, "--format", "sarif"])
+        self.assertEqual(rc_ok, 0)
+        ok_results = json.loads(ok_buf.getvalue())["runs"][0]["results"]
+        self.assertEqual([r["ruleId"] for r in ok_results], ["CHR-012"])
+        self.assertEqual(ok_results[0]["level"], "note")
+
 
 if __name__ == "__main__":
     unittest.main()
