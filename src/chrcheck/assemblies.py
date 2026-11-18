@@ -52,6 +52,24 @@ def _build_mouse_maps(
     return ucsc, ensembl, refseq
 
 
+def _build_organism_maps(
+    lengths: Dict[str, int],
+    refseq: Dict[str, str],
+    ensembl_mito: str = "MT",
+) -> Tuple[Dict[str, str], Dict[str, str], Dict[str, str]]:
+    """UCSC (``chr`` prefix, ``chrM``) and Ensembl names for non-human, non-mouse organisms."""
+    ucsc: Dict[str, str] = {}
+    ensembl: Dict[str, str] = {}
+    for canon in lengths:
+        if canon == "MT":
+            ucsc[canon] = "chrM"
+            ensembl[canon] = ensembl_mito
+        else:
+            ucsc[canon] = f"chr{canon}"
+            ensembl[canon] = canon
+    return ucsc, ensembl, refseq
+
+
 _GRCH38_LENGTHS: Dict[str, int] = {
     "1": 248956422,
     "2": 242193529,
@@ -325,6 +343,107 @@ _GRCM38_REFSEQ: Dict[str, str] = {
 }
 
 
+_GRCZ11_LENGTHS: Dict[str, int] = {
+    "1": 59578282,
+    "2": 59640629,
+    "3": 62628489,
+    "4": 78093715,
+    "5": 72500376,
+    "6": 60270059,
+    "7": 74282399,
+    "8": 54304671,
+    "9": 56459846,
+    "10": 45420867,
+    "11": 45484837,
+    "12": 49182954,
+    "13": 52186027,
+    "14": 52660232,
+    "15": 48040578,
+    "16": 55266484,
+    "17": 53461100,
+    "18": 51023478,
+    "19": 48449771,
+    "20": 55201332,
+    "21": 45934066,
+    "22": 39133080,
+    "23": 46223584,
+    "24": 42172926,
+    "25": 37502051,
+    "MT": 16596,
+}
+
+_GRCZ11_REFSEQ: Dict[str, str] = {
+    "1": "NC_007112.7",
+    "2": "NC_007113.7",
+    "3": "NC_007114.7",
+    "4": "NC_007115.7",
+    "5": "NC_007116.7",
+    "6": "NC_007117.7",
+    "7": "NC_007118.7",
+    "8": "NC_007119.7",
+    "9": "NC_007120.7",
+    "10": "NC_007121.7",
+    "11": "NC_007122.7",
+    "12": "NC_007123.7",
+    "13": "NC_007124.7",
+    "14": "NC_007125.7",
+    "15": "NC_007126.7",
+    "16": "NC_007127.7",
+    "17": "NC_007128.7",
+    "18": "NC_007129.7",
+    "19": "NC_007130.7",
+    "20": "NC_007131.7",
+    "21": "NC_007132.7",
+    "22": "NC_007133.7",
+    "23": "NC_007134.7",
+    "24": "NC_007135.7",
+    "25": "NC_007136.7",
+    "MT": "NC_002333.2",
+}
+
+_BDGP6_LENGTHS: Dict[str, int] = {
+    "X": 23542271,
+    "2L": 23513712,
+    "2R": 25286936,
+    "3L": 28110227,
+    "3R": 32079331,
+    "4": 1348131,
+    "Y": 3667352,
+    "MT": 19524,
+}
+
+_BDGP6_REFSEQ: Dict[str, str] = {
+    "X": "NC_004354.4",
+    "2L": "NT_033779.5",
+    "2R": "NT_033778.4",
+    "3L": "NT_037436.4",
+    "3R": "NT_033777.3",
+    "4": "NC_004353.4",
+    "Y": "NC_024512.1",
+    "MT": "NC_024511.2",
+}
+
+_WBCEL235_LENGTHS: Dict[str, int] = {
+    "I": 15072434,
+    "II": 15279421,
+    "III": 13783801,
+    "IV": 17493829,
+    "V": 20924180,
+    "X": 17718942,
+    "MT": 13794,
+}
+
+_WBCEL235_REFSEQ: Dict[str, str] = {
+    "I": "NC_003279.8",
+    "II": "NC_003280.10",
+    "III": "NC_003281.10",
+    "IV": "NC_003282.8",
+    "V": "NC_003283.11",
+    "X": "NC_003284.9",
+    "MT": "NC_001328.1",
+}
+
+
 def _make_spec(
     name: str,
     aliases: Tuple[str, ...],
@@ -335,6 +454,10 @@ def _make_spec(
 ) -> AssemblySpec:
     if species == "human":
         ucsc, ensembl, rs = _build_human_maps(lengths, refseq, default_mito=default_mito)
+    elif species == "worm":
+        ucsc, ensembl, rs = _build_organism_maps(lengths, refseq, ensembl_mito="MtDNA")
+    elif species in ("zebrafish", "fly"):
+        ucsc, ensembl, rs = _build_organism_maps(lengths, refseq)
     else:
         ucsc, ensembl, rs = _build_mouse_maps(lengths, refseq)
     return AssemblySpec(
@@ -398,6 +521,30 @@ ASSEMBLIES: Dict[str, AssemblySpec] = {
         _GRCM38_REFSEQ,
         "chrM",
     ),
+    "GRCz11": _make_spec(
+        "GRCz11",
+        ("danrer11", "grcz11"),
+        "zebrafish",
+        _GRCZ11_LENGTHS,
+        _GRCZ11_REFSEQ,
+        "chrM",
+    ),
+    "BDGP6": _make_spec(
+        "BDGP6",
+        ("dm6", "bdgp6"),
+        "fly",
+        _BDGP6_LENGTHS,
+        _BDGP6_REFSEQ,
+        "chrM",
+    ),
+    "WBcel235": _make_spec(
+        "WBcel235",
+        ("ce11", "wbcel235"),
+        "worm",
+        _WBCEL235_LENGTHS,
+        _WBCEL235_REFSEQ,
+        "chrM",
+    ),
 }
 
 # Build reverse lookup maps from RefSeq accession (exact and versionless base)
@@ -412,6 +559,10 @@ for _build_name, _spec in ASSEMBLIES.items():
 
 _HUMAN_PRIMARY_CANONICAL = [str(i) for i in range(1, 23)] + ["X", "Y", "MT"]
 _MOUSE_PRIMARY_CANONICAL = [str(i) for i in range(1, 20)] + ["X", "Y", "MT"]
+
+# Non-numeric primary chromosome names: X/Y, Drosophila arms (2L, 2R, 3L, 3R) and
+# C. elegans Roman numerals (I-V). Digit-only names are matched separately.
+_NAMED_CHROM = r"[XY]|2L|2R|3L|3R|III|II|IV|I|V"
 
 _ALT_OR_DECOY_RE = re.compile(
     r"(_alt$|_random$|^chrUn_|^Un_|^HLA-|^EBV$|^hs37d5$|^chrEBV$|_decoy$|^GL\d+|^KI\d+|^JH\d+|^KZ\d+)",
@@ -445,16 +596,16 @@ def classify_contig(name: str) -> Tuple[Optional[str], str, Optional[str]]:
         return "MT", "ucsc", None
     if raw == "chrM":
         return "MT", "ucsc", None
-    if raw == "MT":
+    if raw in ("MT", "MtDNA"):
         return "MT", "ensembl", None
     if raw == "M":
         return "MT", "broken_mito", None
 
-    m_ucsc = re.fullmatch(r"chr([1-9][0-9]?|[XY])", raw)
+    m_ucsc = re.fullmatch(rf"chr([1-9][0-9]?|{_NAMED_CHROM})", raw)
     if m_ucsc:
         return m_ucsc.group(1), "ucsc", None
 
-    m_ens = re.fullmatch(r"([1-9][0-9]?|[XY])", raw)
+    m_ens = re.fullmatch(rf"([1-9][0-9]?|{_NAMED_CHROM})", raw)
     if m_ens:
         return m_ens.group(1), "ensembl", None
 
@@ -467,12 +618,22 @@ def classify_contig(name: str) -> Tuple[Optional[str], str, Optional[str]]:
     return None, "other", None
 
 
+# Within the autosome group, ranks are scaled by 10 so that Drosophila arms sort
+# between "2"/"3"/"4": 2L, 2R, 3L, 3R, 4.
+_ARM_RANKS: Dict[str, int] = {"2L": 20, "2R": 21, "3L": 30, "3R": 31}
+_ROMAN_RANKS: Dict[str, int] = {"I": 1, "II": 2, "III": 3, "IV": 4, "V": 5}
+
+
 def karyotypic_rank(name: str) -> Tuple[int, int, str]:
     """Return deterministic karyotypic sort key for a contig name."""
     canon, _, _ = classify_contig(name)
     if canon is not None:
         if canon.isdigit():
-            return (0, int(canon), name)
+            return (0, int(canon) * 10, name)
+        if canon in _ARM_RANKS:
+            return (0, _ARM_RANKS[canon], name)
+        if canon in _ROMAN_RANKS:
+            return (0, _ROMAN_RANKS[canon] * 10, name)
         if canon == "X":
             return (1, 0, name)
         if canon == "Y":
@@ -565,13 +726,13 @@ def infer_assemblies_from_coordinates(
         return _infer_from_reference_hints(reference_hints or [])
 
     canon_max: Dict[str, int] = {}
-    saw_human_only_chr = False
+    saw_chr_above_19 = False
     for contig, pos in observed_max_pos.items():
         canon, _, _ = classify_contig(contig)
         if canon is None:
             continue
         if canon in ("20", "21", "22"):
-            saw_human_only_chr = True
+            saw_chr_above_19 = True
         prev = canon_max.get(canon, 0)
         if pos > prev:
             canon_max[canon] = pos
@@ -581,7 +742,8 @@ def infer_assemblies_from_coordinates(
 
     candidates: List[str] = []
     for build_name, spec in ASSEMBLIES.items():
-        if saw_human_only_chr and spec.species != "human":
+        # Chromosomes 20-22 exist in human and zebrafish only (not mouse).
+        if saw_chr_above_19 and spec.species not in ("human", "zebrafish"):
             continue
         if all(c in spec.lengths and max_pos <= spec.lengths[c] for c, max_pos in canon_max.items()):
             candidates.append(build_name)
@@ -629,7 +791,10 @@ def map_contig_to_style(
         return f"chr{canon}"
 
     if target_style == "ensembl":
-        return "MT" if canon == "MT" else canon
+        if canon == "MT":
+            spec = ASSEMBLIES.get(target_build or build_hint or "")
+            return spec.ensembl_names.get("MT", "MT") if spec else "MT"
+        return canon
 
     if target_style == "refseq":
         build = target_build or build_hint or "GRCh38"

@@ -149,7 +149,7 @@ chrcheck --fail-on warning "${bam}" "${bed}" "${vcf}"
 No. `.bam` inspection stops immediately after parsing the compressed BGZF header blocks and binary `n_ref` dictionary. Text and `.gz` inputs stream line by line up to `--sample-records` (default `50000`, or all lines with `--full`).
 
 **Does `chrcheck` work on non-human organisms?**
-Yes. Built-in assembly signatures cover human (`GRCh38`/`hg38`, `GRCh37`/`b37`, `hg19`, `T2T-CHM13v2.0`) and mouse (`GRCm39`/`mm39`, `GRCm38`/`mm10`). For any other organism or custom reference, `chrcheck` leaves the assembly label as `custom/unknown` and still validates cross-file contig names, lengths, sort order, mitochondrial style, and coordinate bounds.
+Yes. Built-in assembly signatures cover human (`GRCh38`/`hg38`, `GRCh37`/`b37`, `hg19`, `T2T-CHM13v2.0`), mouse (`GRCm39`/`mm39`, `GRCm38`/`mm10`), zebrafish (`GRCz11`/`danRer11`), fruit fly (`BDGP6`/`dm6`), and *C. elegans* (`WBcel235`/`ce11`). For any other organism or custom reference, `chrcheck` leaves the assembly label as `custom/unknown` and still validates cross-file contig names, lengths, sort order, mitochondrial style, and coordinate bounds.
 
 **Why not just run `sed 's/^chr//' input.bed`?**
 Three reasons: `sed` turns `chrM` into `M` (not `MT`), alters feature names like `CHRNA1` or `chr22` in later columns if not column-anchored, and gives zero warning when your BED file is actually `hg19` while your BAM is `GRCh38`.
@@ -158,7 +158,6 @@ Three reasons: `sed` turns `chrM` into `M` (not `MT`), alters feature names like
 
 - CRAM binary container header parsing with `@SQ` `M5` checksum comparison ([#1](https://github.com/SuzumiyaHaruhi719/chrcheck/issues/1))
 - SARIF 2.1.0 output (`--format sarif`) for GitHub Code Scanning annotations ([#2](https://github.com/SuzumiyaHaruhi719/chrcheck/issues/2))
-- Built-in assembly signatures for zebrafish (`GRCz11`), fruit fly (`BDGP6`/`dm6`), and *C. elegans* (`WBcel235`/`ce11`) ([#3](https://github.com/SuzumiyaHaruhi719/chrcheck/issues/3))
 - Binary `.bigWig` / `.bigBed` chromosome B+ tree header inspection ([#4](https://github.com/SuzumiyaHaruhi719/chrcheck/issues/4))
 
 ## Contributing
